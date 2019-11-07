@@ -1,26 +1,21 @@
 import React, { Component } from "react";
-import Navigation from "./subComponents/NavigationBar";
 import { MDBContainer, MDBBtn } from "mdbreact";
-import MyFooter from "./subComponents/footer";
 import backgroundPhoto1 from "../Images/imageA.png";
 import backgroundPhoto2 from "../Images/imageB.jpg";
 import backgroundPhoto3 from "../Images/imageC.jpg";
 import backgroundPhoto4 from "../Images/imageD.jpg";
 import backgroundPhoto5 from "../Images/imageE.jpg";
 import project from "./subComponents/static";
-import {
-  Container,
-  Row,
-  Col,
-  Modal,
-  Button,
-  Nav,
-  FormGroup
-} from "react-bootstrap";
+import { Row, Modal, Button, FormGroup } from "react-bootstrap";
 import FloatingLabelInput from "react-floating-label-input";
 import { BrowserRouter } from "react-router-dom";
 import ReactDOM from "react-dom";
 import Borrowers from "./borrowers";
+import Navigation from "./subComponents/NavigationBar";
+import MyFooter from "./subComponents/footer";
+import ApiUtils from "../API/APIUtils";
+import { ACCESS_TOKEN } from "../API/constants";
+import $ from "jquery";
 
 class Home extends Component {
   state = {
@@ -32,9 +27,13 @@ class Home extends Component {
     AddCapital: "",
     AddInterest: "",
     AddUsername: "",
-    AddUserpassword: ""
+    AddUserpassword: "",
+    LoginUsername: "",
+    LoginUserpassword: ""
   };
-
+  //
+  apiUtils = new ApiUtils();
+  //
   myStyle = {
     mycenter: {
       display: "flex",
@@ -61,6 +60,25 @@ class Home extends Component {
       marginBottom: 20
     }
   };
+  componentWillMount() {
+    this.checkCurrentUser();
+  }
+
+  checkCurrentUser() {
+    this.apiUtils
+      .getCurrentUser()
+      .then(response => {
+        ReactDOM.render(
+          <BrowserRouter>
+            <Navigation />
+            <Borrowers />
+            <MyFooter />
+          </BrowserRouter>,
+          document.getElementById("root")
+        );
+      })
+      .catch(error => {});
+  }
 
   ShowAddUserModal = () => {
     this.setState({ AddUsermodalStatus: true });
@@ -73,23 +91,41 @@ class Home extends Component {
       loginForm: false
     });
   };
-  //
+  // validate lender's registration form
   validateForm() {
+    if (this.state.AddName.trim().length === 0) {
+      return false;
+    } else if (this.state.AddUseremail.trim().replace(" ", "").length < 1) {
+      return false;
+    } else if (this.state.AddUsername.trim().replace(" ", "").length < 1) {
+      return false;
+    } else if (this.state.AddCapital.length === 0) {
+      return false;
+    } else if (Number.parseFloat(this.state.AddCapital) <= 0) {
+      $("#registrationWarningTextId").html("Invalid capital !");
+      return false;
+    } else if (this.state.AddInterest.length === 0) {
+      return false;
+    } else if (Number.parseFloat(this.state.AddInterest) <= 0) {
+      $("#registrationWarningTextId").html("Invalid interest rate !");
+      return false;
+    } else if (this.state.AddUserpassword.length < 6) {
+      return false;
+    } else {
+      $("#registrationWarningTextId").html("");
+      return true;
+    }
+  }
+
+  validateFormLogin() {
     if (
-      this.state.AddName.trim().length > 1 &&
-      this.state.AddUseremail.trim().replace(" ", "").length > 5 &&
-      this.state.AddUsername.trim().replace(" ", "").length > 1 &&
-      this.state.AddUserpassword.length > 6
+      this.state.LoginUsername.trim().replace(" ", "").length >= 1 &&
+      this.state.LoginUserpassword.length === 6
     ) {
       return true;
     } else {
       return false;
     }
-  }
-
-  validateFormLogin() {
-    // for now
-    return true;
   }
 
   handleChangeName = event => {
@@ -110,34 +146,107 @@ class Home extends Component {
   handleChangePassword = event => {
     this.setState({ AddUserpassword: event.target.value });
   };
-
+  //
   handleChangeUsernameLogin = event => {
     this.setState({ LoginUsername: event.target.value });
   };
   handleChangePasswordLogin = event => {
     this.setState({ LoginUserpassword: event.target.value });
   };
-
+  //
   PerformSignUp = event => {
-    // TODO
-    //
-    ReactDOM.render(
-      <BrowserRouter>
-        <Borrowers />
-      </BrowserRouter>,
-      document.getElementById("root")
-    );
+    event.preventDefault();
+    event.stopPropagation();
+    const signUpRequest = {
+      username: this.state.AddUsername,
+      password: this.state.AddUserpassword,
+      email: this.state.AddUseremail,
+      companyName: this.state.AddName,
+      initialCapital: Number.parseFloat(this.state.AddCapital),
+      interestRate: Number.parseFloat(this.state.AddInterest),
+      role: "user"
+    };
+    this.apiUtils
+      .signup(Object.assign({}, signUpRequest)) // give it all properties of a javaScript object
+      .then(response => {
+        localStorage.setItem(ACCESS_TOKEN, response.token);
+        // empt fields
+        this.emptySignUpForm();
+        // go to component 'Borrowers'
+        ReactDOM.render(
+          <BrowserRouter>
+            <Navigation />
+            <Borrowers />
+            <MyFooter />
+          </BrowserRouter>,
+          document.getElementById("root")
+        );
+        //
+      })
+      .catch(error => {
+        if (error.status === 401) {
+          alert("failed to add a new user ! Please try again");
+        } else {
+          alert("Sorry! Something went wrong. Please try again!");
+        }
+        //
+        // else if (error.status === 409) {
+        //   alert("conflict ! username exists already");
+        // }
+        //
+        // empt fields
+        this.emptySignUpForm();
+      });
   };
 
+  emptySignUpForm() {
+    let IDs = [
+      "nameId",
+      "AddUserEmailId",
+      "AddUserCapitalId",
+      "AddUserInterestRateId",
+      "AddUsernameId",
+      "AddUserpasswordId"
+    ];
+    IDs.forEach(id => {
+      $("#" + id).val(""); // set value to empty
+    });
+  }
+
   PerformSignIn = event => {
-    // TODO
-    //
-    ReactDOM.render(
-      <BrowserRouter>
-        <Borrowers />
-      </BrowserRouter>,
-      document.getElementById("root")
-    );
+    event.preventDefault();
+    event.stopPropagation();
+    const loginRequest = {
+      username: this.state.LoginUsername,
+      password: this.state.LoginUserpassword
+    };
+    this.apiUtils
+      .login(Object.assign({}, loginRequest)) // give it all properties of a javaScript object
+      .then(response => {
+        localStorage.setItem(ACCESS_TOKEN, response.token);
+        // go to component 'Borrowers'
+        ReactDOM.render(
+          <BrowserRouter>
+            <Navigation />
+            <Borrowers />
+            <MyFooter />
+          </BrowserRouter>,
+          document.getElementById("root")
+        );
+        //
+      })
+      .catch(error => {
+        if (error.status === 401) {
+          alert("Your Username or Password is incorrect. Please try again!");
+          // empty fields
+          $("#LoginUserpasswordId").val("");
+          $("#LoginUsernameId").val("");
+        } else {
+          alert(
+            error.message || "Sorry! Something went wrong. Please try again!"
+          );
+        }
+      });
   };
 
   showLogin = () => {
@@ -148,9 +257,12 @@ class Home extends Component {
   };
 
   render() {
+    // limit the number of characters in the password field
+    $("#LoginUserpasswordId").attr("maxlength", "6");
+    $("#AddUserpasswordId").attr("maxlength", "6");
+    //
     return (
       <div>
-        <Navigation hideNavLinks={true} />
         <MDBContainer
           fluid
           style={{
@@ -191,7 +303,6 @@ class Home extends Component {
             </Row>
           </div>
         </MDBContainer>
-        <MyFooter />
         {/* popup window */}
         <Modal
           show={this.state.AddUsermodalStatus}
@@ -247,7 +358,7 @@ class Home extends Component {
                 </FormGroup>
                 <FormGroup>
                   <FloatingLabelInput
-                    id="AddUserCapitalId"
+                    id="AddUserInterestRateId"
                     label={"Interest Rate"}
                     type="number"
                     onBlur=""
@@ -269,7 +380,7 @@ class Home extends Component {
                 <FormGroup>
                   <FloatingLabelInput
                     id="AddUserpasswordId"
-                    label={"Password"}
+                    label={"Password (6 characters)"}
                     onBlur=""
                     type="password"
                     value={this.state.AddUserpassword}
@@ -285,6 +396,12 @@ class Home extends Component {
                 >
                   Sign In
                 </a>
+                <FormGroup>
+                  <span
+                    className="text-danger"
+                    id="registrationWarningTextId"
+                  ></span>
+                </FormGroup>
               </p>
             </Modal.Body>
 
@@ -330,7 +447,7 @@ class Home extends Component {
                 <FormGroup>
                   <FloatingLabelInput
                     id="LoginUserpasswordId"
-                    label={"Password"}
+                    label={"Password (6 characters)"}
                     onBlur=""
                     type="password"
                     value={this.state.LoginUserpassword}
