@@ -38,3 +38,4 @@ test("Calculate Interest with nulls and no periodType", () => {
   expect(Number.parseFloat(interest.toFixed(3))).toBe(0.0);
 });
 // test getPeriodType()
+// test validation

@@ -39,14 +39,14 @@ class Navigation extends Component {
   checkCurrentUser() {
     this.apiUtils
       .getCurrentUser()
-      .then(response => {
+      .then((response) => {
         this.setState({ hideNavLinks: false });
       })
-      .catch(error => {
+      .catch((error) => {
         this.setState({ hideNavLinks: true });
       });
   }
-  handleSelection = key => {
+  handleSelection = (key) => {
     switch (key) {
       case "key1":
         break;

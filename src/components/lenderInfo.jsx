@@ -21,7 +21,7 @@ class LenderInfo extends Component {
     };
   }
   apiUtils = new ApiUtils();
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.checkCurrentUser();
   }
   checkCurrentUser() {
@@ -81,6 +81,14 @@ class LenderInfo extends Component {
                   {Number.parseFloat(
                     this.state.lendeInfo.initialCapital +
                       this.state.lendeInfo.totalInterest
+                  ).toLocaleString()}
+                </td>
+              </tr>
+              <tr>
+                <td>Cash At Hand</td>
+                <td>
+                  {Number.parseFloat(
+                    this.state.lendeInfo.cashAtHand
                   ).toLocaleString()}
                 </td>
               </tr>

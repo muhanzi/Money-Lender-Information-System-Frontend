@@ -4,7 +4,7 @@ import {
   MDBDataTable,
   MDBBtn,
   MDBTable,
-  MDBTableBody
+  MDBTableBody,
 } from "mdbreact";
 import projectStyles from "./subComponents/Styles";
 import ApiUtils from "../API/APIUtils";
@@ -20,24 +20,47 @@ import { Checkbox, withStyles, FormControlLabel } from "@material-ui/core";
 import { orange } from "@material-ui/core/colors";
 
 class Borrowers extends Component {
-  state = {
-    currentUser: {},
-    Data: {}, // for the DataTable
-    AllBorrowersInfo: [], // with all details from the database
-    borrowerModal: false,
-    clickedBorrower: {}, // selected borrower in the table
-    depositValue: "",
-    AddBorrowerModal: false,
-    AddBorrowerName: "",
-    AddBorrowerPhoneNumber: "",
-    AddBorrowerNationalId: "",
-    AddBorrowerLoanAmount: "",
-    AddBorrowerLoanPeriod: "",
-    AddBorrowerPeriodTypeDays: false,
-    AddBorrowerPeriodTypeMonths: false,
-    AddBorrowerPeriodTypeWeeks: false,
-    InterestCalculated: 0.0
-  };
+  // state = {
+  //   currentUser: {},
+  //   Data: {}, // for the DataTable
+  //   AllBorrowersInfo: [], // with all details from the database
+  //   borrowerModal: false,
+  //   clickedBorrower: {}, // selected borrower in the table
+  //   depositValue: "",
+  //   AddBorrowerModal: false,
+  //   AddBorrowerName: "",
+  //   AddBorrowerPhoneNumber: "",
+  //   AddBorrowerNationalId: "",
+  //   AddBorrowerLoanAmount: "",
+  //   AddBorrowerLoanPeriod: "",
+  //   AddBorrowerPeriodTypeDays: false,
+  //   AddBorrowerPeriodTypeMonths: false,
+  //   AddBorrowerPeriodTypeWeeks: false,
+  //   InterestCalculated: 0.0
+  // };
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentUser: {},
+      Data: {}, // for the DataTable
+      AllBorrowersInfo: [], // with all details from the database
+      borrowerModal: false,
+      clickedBorrower: {}, // selected borrower in the table
+      depositValue: "",
+      AddBorrowerModal: false,
+      AddBorrowerName: "",
+      AddBorrowerPhoneNumber: "",
+      AddBorrowerNationalId: "",
+      AddBorrowerLoanAmount: "",
+      AddBorrowerLoanPeriod: "",
+      AddBorrowerPeriodTypeDays: false,
+      AddBorrowerPeriodTypeMonths: false,
+      AddBorrowerPeriodTypeWeeks: false,
+      InterestCalculated: 0.0,
+    };
+  }
+
   //
   apiUtils = new ApiUtils();
   //
@@ -45,24 +68,23 @@ class Borrowers extends Component {
     root: {
       color: orange[400],
       "&$checked": {
-        color: orange[600]
-      }
+        color: orange[600],
+      },
     },
-    checked: {}
-  })(props => <Checkbox color="default" {...props} />);
+    checked: {},
+  })((props) => <Checkbox color="default" {...props} />);
   //
-  componentWillMount() {
+  componentDidMount() {
     this.checkCurrentUser();
   }
   checkCurrentUser() {
     this.apiUtils
       .getCurrentUser()
-      .then(response => {
+      .then((response) => {
         this.setState({ currentUser: response });
         this.getBorrowers();
-        return true; //just for testing
       })
-      .catch(error => {
+      .catch((error) => {
         ReactDOM.render(
           <BrowserRouter>
             <Navigation />
@@ -71,27 +93,26 @@ class Borrowers extends Component {
           </BrowserRouter>,
           document.getElementById("root")
         );
-        return false; //just for testing
       });
   }
   getBorrowers() {
     this.apiUtils
       .showLoans(this.state.currentUser.id)
-      .then(response => {
+      .then((response) => {
         // get borrowers
         this.setState({ AllBorrowersInfo: response });
         let loans = [];
-        response.forEach(loan => {
+        response.forEach((loan) => {
           loans.push({
             name: loan.borrowerName,
             amount: Number.parseFloat(loan.loanAmount).toLocaleString(),
             period: loan.loanPeriod + " " + loan.periodType,
-            date: loan.date_issued,
+            date: new Intl.DateTimeFormat().format(new Date(loan.date_issued)), // Internationalization API it formats a date according to the computer default locale
             status: loan.status,
             clickEvent: () => {
               // show a popup for a certain borrower
               this.showBorrowerDetails(loan.id);
-            }
+            },
           });
         });
         this.setState({
@@ -101,42 +122,42 @@ class Borrowers extends Component {
                 label: "Name",
                 field: "name",
                 sort: "asc",
-                width: 150
+                width: 150,
               },
               {
                 label: "Loan Amount",
                 field: "amount",
                 sort: "asc",
-                width: 270
+                width: 270,
               },
               {
                 label: "Loan Period",
                 field: "period",
                 sort: "asc",
-                width: 200
+                width: 200,
               },
               {
                 label: "Date Issued",
                 field: "date",
                 sort: "asc",
-                width: 100
+                width: 100,
               },
               {
                 label: "Status",
                 field: "status",
                 sort: "asc",
-                width: 150
-              }
+                width: 150,
+              },
             ],
-            rows: loans
-          }
+            rows: loans,
+          },
         });
       })
-      .catch(error => {});
+      .catch((error) => {});
   }
-  showBorrowerDetails = id => {
+  showBorrowerDetails = (id) => {
     // show a popup for a certain borrower
-    this.state.AllBorrowersInfo.filter(borrower => {
+    this.state.AllBorrowersInfo.filter((borrower) => {
       if (borrower.id === id) {
         this.setState({ clickedBorrower: borrower, borrowerModal: true }); //borrowerModal // show popup window
         return borrower;
@@ -152,7 +173,7 @@ class Borrowers extends Component {
     this.getBorrowers();
   };
 
-  handleChangeDeposit = event => {
+  handleChangeDeposit = (event) => {
     this.setState({ depositValue: event.target.value });
   };
 
@@ -176,7 +197,7 @@ class Borrowers extends Component {
     }
   };
 
-  PerformDeposit = event => {
+  PerformDeposit = (event) => {
     event.preventDefault();
     event.stopPropagation();
     let loan = this.state.clickedBorrower;
@@ -190,11 +211,12 @@ class Borrowers extends Component {
       loan.status = "paid"; // change the status of loan after full amount have been paid
       this.apiUtils
         .saveLoan(Object.assign({}, loan)) // give it all properties of a javaScript object
-        .then(response => {
+        .then((response) => {
           $("#depositId").val("");
-          alert("Deposit saved successfully");
+          // modify cashAtHand
+          this.UpdateCashAtHand();
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.status === 401) {
             alert("failed to save loan ! Please try again");
           } else {
@@ -205,11 +227,13 @@ class Borrowers extends Component {
     } else {
       this.apiUtils
         .saveLoan(Object.assign({}, loan)) // give it all properties of a javaScript object
-        .then(response => {
+        .then((response) => {
           $("#depositId").val("");
-          alert("Deposit saved successfully");
+          // modify cashAtHand
+          this.UpdateCashAtHand();
+          // alert("Deposit saved successfully");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.status === 401) {
             alert("failed to save loan ! Please try again");
           } else {
@@ -230,47 +254,47 @@ class Borrowers extends Component {
     this.getBorrowers();
   };
 
-  handleChangeborrowerName = event => {
+  handleChangeborrowerName = (event) => {
     this.setState({ AddBorrowerName: event.target.value });
   };
 
-  handleChangeborrowerPhoneNumber = event => {
+  handleChangeborrowerPhoneNumber = (event) => {
     this.setState({ AddBorrowerPhoneNumber: event.target.value });
   };
 
-  handleChangeborrowerNationalId = event => {
+  handleChangeborrowerNationalId = (event) => {
     this.setState({ AddBorrowerNationalId: event.target.value });
   };
 
-  handleChangeborrowerLoanAmount = event => {
+  handleChangeborrowerLoanAmount = (event) => {
     this.setState({ AddBorrowerLoanAmount: event.target.value });
   };
 
-  handleChangeborrowerLoanPeriod = event => {
+  handleChangeborrowerLoanPeriod = (event) => {
     this.setState({ AddBorrowerLoanPeriod: event.target.value });
   };
 
-  handleChangePerioTypeDays = event => {
+  handleChangePerioTypeDays = (event) => {
     this.setState({
       AddBorrowerPeriodTypeDays: event.target.checked,
       AddBorrowerPeriodTypeMonths: false,
-      AddBorrowerPeriodTypeWeeks: false
+      AddBorrowerPeriodTypeWeeks: false,
     });
   };
 
-  handleChangePerioTypeWeeks = event => {
+  handleChangePerioTypeWeeks = (event) => {
     this.setState({
       AddBorrowerPeriodTypeDays: false,
       AddBorrowerPeriodTypeMonths: false,
-      AddBorrowerPeriodTypeWeeks: event.target.checked
+      AddBorrowerPeriodTypeWeeks: event.target.checked,
     });
   };
 
-  handleChangePerioTypeMonths = event => {
+  handleChangePerioTypeMonths = (event) => {
     this.setState({
       AddBorrowerPeriodTypeDays: false,
       AddBorrowerPeriodTypeMonths: event.target.checked,
-      AddBorrowerPeriodTypeWeeks: false
+      AddBorrowerPeriodTypeWeeks: false,
     });
   };
 
@@ -299,11 +323,10 @@ class Borrowers extends Component {
       return false;
     } else if (
       Number.parseFloat(this.state.AddBorrowerLoanAmount) >
-      this.state.currentUser.initialCapital +
-        this.state.currentUser.totalInterest
+      this.state.currentUser.cashAtHand
     ) {
       $("#borrowerWarningTextId").html(
-        "Loan amount is greater than your actual capital !"
+        "Loan amount is greater than available cash !"
       );
       return false;
     } else if (this.state.AddBorrowerLoanPeriod.length === 0) {
@@ -323,7 +346,7 @@ class Borrowers extends Component {
     }
   };
 
-  PerformAddBorrower = event => {
+  PerformAddBorrower = (event) => {
     event.preventDefault();
     event.stopPropagation();
     let borrower = {
@@ -343,20 +366,20 @@ class Borrowers extends Component {
       nationalIdNumber: this.state.AddBorrowerNationalId,
       periodType: this.getPeriodTypeChosen(),
       phoneNumber: this.state.AddBorrowerPhoneNumber,
-      status: "onGoing"
+      status: "onGoing",
     };
     this.apiUtils
       .saveLoan(Object.assign({}, borrower)) // give it all properties of a javaScript object
-      .then(response => {
-        this.updateLenderTotalInterest();
+      .then((response) => {
+        this.updateLenderInfo();
         // uncheck all the checkboxes
         this.setState({
           AddBorrowerPeriodTypeDays: false,
           AddBorrowerPeriodTypeWeeks: false,
-          AddBorrowerPeriodTypeMonths: false
+          AddBorrowerPeriodTypeMonths: false,
         });
       })
-      .catch(error => {
+      .catch((error) => {
         if (error.status === 401) {
           alert("failed to add borrower ! Please try again");
         } else {
@@ -405,19 +428,40 @@ class Borrowers extends Component {
     return interest;
   }
 
-  updateLenderTotalInterest() {
+  updateLenderInfo() {
     let LenderUpdate = this.state.currentUser;
     LenderUpdate.totalInterest += this.state.InterestCalculated;
+    LenderUpdate.cashAtHand -= this.state.AddBorrowerLoanAmount;
     this.apiUtils
       .updateLender(Object.assign({}, LenderUpdate)) // give it all properties of a javaScript object
-      .then(response => {
-        // alert("lender total interest updated successfully");
+      .then((response) => {
+        // alert("lender total interest and cash at hand updated successfully");
         this.emptyBorrowerRegistrationForm();
         alert("Borrower added successfully");
       })
-      .catch(error => {
+      .catch((error) => {
         // if (error.status === 401) {
-        //   alert("failed to update total interest ! Please try again");
+        //   alert("failed to update total interest and cash at hand ! Please try again");
+        // } else {
+        //   alert("Sorry! Something went wrong. Please try again!");
+        // }
+      });
+  }
+
+  UpdateCashAtHand() {
+    let LenderUpdate = this.state.currentUser;
+    LenderUpdate.cashAtHand =
+      Number.parseFloat(LenderUpdate.cashAtHand) +
+      Number.parseFloat(this.state.depositValue);
+    this.apiUtils
+      .updateLender(Object.assign({}, LenderUpdate)) // give it all properties of a javaScript object
+      .then((response) => {
+        // alert("lender Cash at hand updated successfully");
+        alert("Deposit saved successfully");
+      })
+      .catch((error) => {
+        // if (error.status === 401) {
+        //   alert("failed to update cash at hand ! Please try again");
         // } else {
         //   alert("Sorry! Something went wrong. Please try again!");
         // }
@@ -430,9 +474,9 @@ class Borrowers extends Component {
       "phoneNumberId",
       "NatioanalId",
       "borrowerLoanAmountId",
-      "borrowerLoanPeriodId"
+      "borrowerLoanPeriodId",
     ];
-    IDs.forEach(id => {
+    IDs.forEach((id) => {
       $("#" + id).val(""); // set value to empty
     });
   }

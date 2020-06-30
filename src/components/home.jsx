@@ -18,21 +18,40 @@ import { ACCESS_TOKEN } from "../API/constants";
 import $ from "jquery";
 
 class Home extends Component {
-  state = {
-    AddUsermodalStatus: false,
-    loginForm: false,
-    signUpForm: true,
-    AddName: "",
-    AddUseremail: "",
-    AddCapital: "",
-    AddInterest: "",
-    AddUsername: "",
-    AddUserpassword: "",
-    LoginUsername: "",
-    LoginUserpassword: ""
-  };
+  // state = {
+  //   AddUsermodalStatus: false,
+  //   loginForm: false,
+  //   signUpForm: true,
+  //   AddName: "",
+  //   AddUseremail: "",
+  //   AddCapital: "",
+  //   AddInterest: "",
+  //   AddUsername: "",
+  //   AddUserpassword: "",
+  //   LoginUsername: "",
+  //   LoginUserpassword: ""
+  // };
+
   //
   apiUtils = new ApiUtils();
+  //
+  constructor(props) {
+    super(props);
+    this.state = {
+      AddUsermodalStatus: false,
+      loginForm: false,
+      signUpForm: true,
+      AddName: "",
+      AddUseremail: "",
+      AddCapital: "",
+      AddInterest: "",
+      AddUsername: "",
+      AddUserpassword: "",
+      LoginUsername: "",
+      LoginUserpassword: ""
+    };
+    this.checkCurrentUser();
+  }
   //
   myStyle = {
     mycenter: {
@@ -60,9 +79,10 @@ class Home extends Component {
       marginBottom: 20
     }
   };
-  componentWillMount() {
-    this.checkCurrentUser();
-  }
+
+  // UNSAFE_componentWillMount() {
+  //   this.checkCurrentUser();
+  // }
 
   checkCurrentUser() {
     this.apiUtils
@@ -164,6 +184,8 @@ class Home extends Component {
       companyName: this.state.AddName,
       initialCapital: Number.parseFloat(this.state.AddCapital),
       interestRate: Number.parseFloat(this.state.AddInterest),
+      totalInterest: 0.0,
+      cashAtHand: Number.parseFloat(this.state.AddCapital),
       role: "user"
     };
     this.apiUtils
