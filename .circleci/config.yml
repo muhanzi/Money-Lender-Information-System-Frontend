@@ -6,9 +6,23 @@ version: 2.1
 orbs:
   node: circleci/node@4.7
 
+jobs:
+  dependencies:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            npm install --save
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
+  install_dependencies:
+    jobs:
+      - dependencies
   sample: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
@@ -18,4 +32,4 @@ workflows:
           # https://circleci.com/developer/images/image/cimg/node
           version: '16.10'
           # If you are using yarn, change the line below from "npm" to "yarn"
-          pkg-manager: npm
+          #pkg-manager: npm
