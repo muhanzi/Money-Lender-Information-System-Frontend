@@ -8,8 +8,8 @@ orbs:
 
 jobs:
   dependencies:
-    # docker:
-    #   - image: circleci/node:10
+    docker:
+      - image: circleci/node:10
     steps:
       - checkout
       - run:
@@ -32,4 +32,4 @@ workflows:
           # https://circleci.com/developer/images/image/cimg/node
           version: '16.10'
           # If you are using yarn, change the line below from "npm" to "yarn"
-          #pkg-manager: npm
+          pkg-manager: yarn
