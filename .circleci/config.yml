@@ -8,8 +8,8 @@ orbs:
 
 jobs:
   dependencies:
-    docker:
-      - image: circleci/node:10
+    # docker:
+    #   - image: circleci/node:10
     steps:
       - checkout
       - run:
